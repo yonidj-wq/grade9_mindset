@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mindset Plus – כיתה ט׳</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);min-height:100vh;direction:rtl;color:#fff}
+#app{max-width:720px;margin:0 auto;padding:10px 10px 40px}
+
+header{text-align:center;padding:16px 8px 8px}
+header h1{font-size:1.6rem;letter-spacing:.5px;font-weight:800;color:#e2e8f0;margin-bottom:4px}
+header p{font-size:.82rem;color:#94a3b8;margin-bottom:8px}
+#scorebar{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+#scorebar span{background:rgba(255,255,255,.12);padding:4px 16px;border-radius:20px;font-size:.85rem;font-weight:700;color:#e2e8f0}
+
+nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+nav button{background:rgba(255,255,255,.1);color:#cbd5e1;border:1.5px solid rgba(255,255,255,.2);border-radius:20px;padding:7px 13px;font-size:.8rem;cursor:pointer;transition:.18s;font-family:inherit;font-weight:600}
+nav button.active,nav button:hover{background:rgba(255,255,255,.95);color:#1e293b;border-color:transparent}
+
+#gc{background:#1e293b;border-radius:18px;padding:22px 20px;min-height:340px;box-shadow:0 8px 40px rgba(0,0,0,.4)}
+
+.sec-title{text-align:center;font-size:1rem;color:#7dd3fc;font-weight:700;margin-bottom:12px;letter-spacing:.3px}
+.prog{font-size:.8rem;color:#64748b;margin-bottom:10px;text-align:center}
+
+/* flashcard */
+.flip-scene{perspective:900px;width:100%;max-width:440px;margin:0 auto 14px;height:175px;cursor:pointer}
+.flip-card{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:.5s}
+.flip-card.flipped{transform:rotateY(180deg)}
+.flip-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.flip-front{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border:1.5px solid rgba(255,255,255,.2)}
+.flip-back{background:linear-gradient(135deg,#7c3aed,#a855f7);border:1.5px solid rgba(255,255,255,.2);transform:rotateY(180deg)}
+.flip-en{font-size:1.9rem;font-weight:800;color:#fff;margin-bottom:4px}
+.flip-he{font-size:1.7rem;font-weight:700;color:#fff}
+.flip-hint{font-size:.76rem;color:rgba(255,255,255,.6);margin-top:8px}
+.flip-type{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:2px;font-style:italic}
+
+/* buttons */
+.btn{border:none;border-radius:12px;padding:11px 22px;font-size:.95rem;cursor:pointer;margin:5px;transition:.18s;font-family:inherit;font-weight:700;color:#fff}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.btn-blue{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
+.btn-purple{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
+.btn-green{background:linear-gradient(135deg,#059669,#047857)}
+.btn-sm{padding:7px 14px;font-size:.82rem}
+.btn-row{display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.nav-row{display:flex;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px}
+
+/* options */
+.opts{display:flex;flex-direction:column;gap:9px;margin:12px 0}
+.opt{background:#0f172a;border:1.5px solid #334155;border-radius:11px;padding:13px 16px;cursor:pointer;font-size:.97rem;text-align:right;transition:.18s;font-family:inherit;color:#e2e8f0;line-height:1.45}
+.opt:hover:not(.disabled){background:#1e3a5f;border-color:#3b82f6;transform:translateX(-3px)}
+.opt.correct{background:#064e3b!important;border-color:#10b981!important;color:#6ee7b7}
+.opt.wrong{background:#450a0a!important;border-color:#ef4444!important;color:#fca5a5}
+.opt.disabled{pointer-events:none;opacity:.85}
+
+/* question text */
+.q-en{font-size:1.1rem;font-weight:700;color:#e2e8f0;margin:8px 0 16px;line-height:1.6;text-align:center;background:#0f172a;border-radius:10px;padding:12px 16px}
+.q-he{font-size:1.15rem;font-weight:700;color:#a78bfa;margin:8px 0 16px;line-height:1.6;text-align:center;background:#0f172a;border-radius:10px;padding:12px 16px}
+.word-big{font-size:1.7rem;font-weight:800;color:#7dd3fc;text-align:center;margin:10px 0 18px;display:block}
+
+/* feedback */
+.fb{text-align:center;font-size:1.2rem;font-weight:700;padding:10px 14px;border-radius:10px;margin:10px 0;display:none}
+.fb.show{display:block}
+.fb.ok{background:#064e3b;color:#6ee7b7}
+.fb.no{background:#450a0a;color:#fca5a5}
+
+/* matching */
+.match-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.match-col{display:flex;flex-direction:column;gap:8px}
+.match-col-title{text-align:center;font-size:.78rem;color:#64748b;font-weight:700;margin-bottom:2px}
+.mi{background:#0f172a;border:1.5px solid #334155;border-radius:11px;padding:11px 10px;cursor:pointer;text-align:center;font-size:.93rem;color:#e2e8f0;transition:.18s;line-height:1.3}
+.mi:hover:not(.matched){background:#1e3a5f;border-color:#3b82f6}
+.mi.sel{border-color:#7c3aed;background:#1e1b4b;box-shadow:0 0 0 2px rgba(124,58,237,.4)}
+.mi.matched{background:#064e3b;border-color:#10b981;color:#6ee7b7;pointer-events:none}
+.mi.bad{background:#450a0a;border-color:#ef4444;animation:shk .35s}
+@keyframes shk{0%,100%{transform:translateX(0)}30%{transform:translateX(-6px)}70%{transform:translateX(6px)}}
+
+/* done */
+.done-scr{text-align:center;padding:30px 10px}
+.done-scr .ico{font-size:3.5rem;margin-bottom:10px}
+.done-scr p{font-size:1.2rem;color:#7dd3fc;font-weight:700;margin-bottom:18px}
+
+/* confetti */
+#cw{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999}
+.cp{position:absolute;width:9px;height:9px;border-radius:2px;animation:cf linear forwards}
+@keyframes cf{to{transform:translateY(105vh) rotate(720deg);opacity:0}}
+
+/* sentence translate mode tabs */
+.dir-toggle{display:flex;justify-content:center;gap:10px;margin-bottom:14px}
+.dir-btn{background:#0f172a;border:1.5px solid #334155;border-radius:20px;padding:6px 16px;font-size:.82rem;cursor:pointer;color:#94a3b8;font-family:inherit;font-weight:600;transition:.18s}
+.dir-btn.active{background:#2563eb;border-color:#2563eb;color:#fff}
+
+@media(max-width:480px){
+  .flip-en{font-size:1.4rem}.flip-he{font-size:1.3rem}
+  .opt{font-size:.9rem} nav button{font-size:.75rem;padding:6px 10px}
+  .match-cols{gap:6px} .mi{font-size:.83rem;padding:8px 6px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>📘 Mindset Plus – כיתה ט׳</h1>
+    <p>תרגל אוצר מילים ומשפטים</p>
+    <div id="scorebar">
+      <span>⭐ ניקוד: <b id="s-score">0</b></span>
+      <span>🔥 רצף: <b id="s-streak">0</b></span>
+    </div>
+  </header>
+  <nav>
+    <button id="tab-flash"   onclick="setMode('flash')">📇 כרטיסיות</button>
+    <button id="tab-vocab"   onclick="setMode('vocab')">🔤 בחירה</button>
+    <button id="tab-fillin"  onclick="setMode('fillin')">✏️ השלמה</button>
+    <button id="tab-sent"    onclick="setMode('sent')">🌍 תרגום משפטים</button>
+    <button id="tab-match"   onclick="setMode('match')">🔗 התאמה</button>
+  </nav>
+  <div id="gc"></div>
+</div>
+<div id="cw"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+const VOCAB = [
+  {en:'approve',           he:'לאשר',                    pos:'v'},
+  {en:'aspect',            he:'היבט / צד',               pos:'n'},
+  {en:'at long last',      he:'סוף סוף',                 pos:'ph'},
+  {en:'be up to',          he:'תלוי ב / מוכן ל',         pos:'ph'},
+  {en:'benefit',           he:'יתרון / תועלת',           pos:'n'},
+  {en:'clap',              he:'למחוא כפיים',              pos:'v'},
+  {en:'community',         he:'קהילה',                   pos:'n'},
+  {en:'complain',          he:'להתלונן',                 pos:'v'},
+  {en:'constant',          he:'קבוע / מתמיד',            pos:'adj'},
+  {en:'contents',          he:'תוכן',                    pos:'n'},
+  {en:'contribute',        he:'לתרום / להשתתף',          pos:'v'},
+  {en:'convenient',        he:'נוח',                     pos:'adj'},
+  {en:'course',            he:'קורס / מנה',              pos:'n'},
+  {en:'custom',            he:'מנהג',                    pos:'n'},
+  {en:'domestic',          he:'ביתי / מקומי',            pos:'adj'},
+  {en:'dust',              he:'אבק',                     pos:'n'},
+  {en:'economic',          he:'כלכלי',                   pos:'adj'},
+  {en:'estimate',          he:'להעריך / אומדן',          pos:'v/n'},
+  {en:'etc.',              he:'וכו׳ / וכדומה',           pos:'ph'},
+  {en:'exhibition',        he:'תערוכה',                  pos:'n'},
+  {en:'experiment',        he:'ניסוי',                   pos:'n'},
+  {en:'demonstrate',       he:'להדגים',                  pos:'v'},
+  {en:'greet',             he:'לברך / לפגוש',            pos:'v'},
+  {en:'in advance',        he:'מראש',                    pos:'ph'},
+  {en:'in particular',     he:'במיוחד',                  pos:'ph'},
+  {en:'Judaism',           he:'יהדות',                   pos:'n'},
+  {en:'keep in touch',     he:'לשמור על קשר',            pos:'ph'},
+  {en:'no longer',         he:'כבר לא',                  pos:'ph'},
+  {en:'odd',               he:'מוזר',                    pos:'adj'},
+  {en:'one of these days', he:'אחד הימים האלה',          pos:'ph'},
+  {en:'owner',             he:'בעלים',                   pos:'n'},
+  {en:'partner',           he:'שותף',                    pos:'n'},
+  {en:'postpone',          he:'לדחות',                   pos:'v'},
+  {en:'preparation',       he:'הכנה',                    pos:'n'},
+  {en:'put up',            he:'להציב / לסבול',           pos:'ph'},
+  {en:'repair',            he:'לתקן',                    pos:'v'},
+  {en:'session',           he:'מפגש / שיעור',            pos:'n'},
+  {en:'shadow',            he:'צל',                      pos:'n'},
+  {en:'so long as',        he:'כל עוד',                  pos:'ph'},
+  {en:'station',           he:'תחנה',                    pos:'n'},
+  {en:'suppose',           he:'להניח / לשער',            pos:'v'},
+  {en:'talk',              he:'שיחה / לדבר',             pos:'n/v'},
+  {en:'thread',            he:'חוט',                     pos:'n'},
+  {en:'truly',             he:'באמת / בכנות',            pos:'adv'},
+  {en:'try one\'s best',   he:'לנסות כמיטב יכולתו',     pos:'ph'},
+  {en:'turn',              he:'תור / לסובב',             pos:'n/v'},
+  {en:'turn down',         he:'לסרב / להנמיך',          pos:'ph'},
+  {en:'wedding',           he:'חתונה',                   pos:'n'},
+  {en:'wipe',              he:'לנגב',                    pos:'v'},
+];
+
+// Fill-in questions — only words from VOCAB above
+const FILLIN = [
+  {q:'I asked him to ___ the meeting because I was sick.',
+   ans:'postpone', opts:['postpone','approve','greet','wipe']},
+  {q:'The manager had to ___ the new budget plan.',
+   ans:'approve', opts:['approve','repair','postpone','complain']},
+  {q:'She always sends a message ___ to confirm the appointment.',
+   ans:'in advance', opts:['in advance','no longer','at long last','so long as']},
+  {q:'He is a ___ talker — he never stops.',
+   ans:'constant', opts:['constant','domestic','odd','convenient']},
+  {q:'After years of waiting, ___ the results were published.',
+   ans:'at long last', opts:['at long last','no longer','one of these days','so long as']},
+  {q:'The two companies decided to ___ to the local charity.',
+   ans:'contribute', opts:['contribute','complain','suppose','wipe']},
+  {q:'Don\'t forget to ___ your desk before the guests arrive.',
+   ans:'wipe', opts:['wipe','clap','greet','repair']},
+  {q:'He is a ___ — he owns three shops in town.',
+   ans:'owner', opts:['owner','partner','session','shadow']},
+  {q:'The science teacher set up an interesting ___ for the class.',
+   ans:'experiment', opts:['experiment','exhibition','course','session']},
+  {q:'Good ___ is key to doing well on any exam.',
+   ans:'preparation', opts:['preparation','custom','dust','thread']},
+  {q:'The artist\'s ___ attracted thousands of visitors.',
+   ans:'exhibition', opts:['exhibition','experiment','session','community']},
+  {q:'It is ___ to have a supermarket near your house.',
+   ans:'convenient', opts:['convenient','constant','domestic','economic']},
+  {q:'She sewed the button back on with a needle and ___.',
+   ans:'thread', opts:['thread','shadow','dust','talk']},
+  {q:'The committee will ___ the candidates and decide tomorrow.',
+   ans:'estimate', opts:['estimate','demonstrate','contribute','postpone']},
+  {q:'I ___ with my old school friends through social media.',
+   ans:'keep in touch', opts:['keep in touch','turn down','put up','be up to']},
+  {q:'He ___ the job offer because the salary was too low.',
+   ans:'turned down', opts:['turned down','kept in touch','put up','approved']},
+  {q:'The teacher will ___ how to solve the equation on the board.',
+   ans:'demonstrate', opts:['demonstrate','estimate','approve','greet']},
+  {q:'There was a lot of ___ on the shelves because nobody cleaned for weeks.',
+   ans:'dust', opts:['dust','shadow','thread','custom']},
+  {q:'They ___ the speaker loudly at the end of the talk.',
+   ans:'clapped', opts:['clapped','wiped','greeted','repaired']},
+  {q:'I love apples ___ — much more than any other fruit.',
+   ans:'in particular', opts:['in particular','in advance','at long last','no longer']},
+  {q:'The ___ situation in the country has improved this year.',
+   ans:'economic', opts:['economic','domestic','convenient','constant']},
+  {q:'She ___ about the noise every single day.',
+   ans:'complains', opts:['complains','supposes','estimates','greets']},
+  {q:'My laptop broke down — I need to ___ it before the presentation.',
+   ans:'repair', opts:['repair','wipe','approve','clap']},
+  {q:'He is ___ my business ___.',
+   ans:'partner', opts:['partner','owner','shadow','session']},
+  {q:'___ you study regularly, you will pass the exam.',
+   ans:'So long as', opts:['So long as','No longer','At long last','One of these days']},
+];
+
+// Sentences — EN original + HE translation
+const SENTENCES = [
+  {en:'Because of the news, the economic situation looks worse.',
+   he:'בגלל החדשות, המצב הכלכלי נראה גרוע יותר.',
+   distractorsHe:['בגלל המצב, החדשות כלכליות יותר.','החדשות לא טובות בגלל המצב.','המצב הכלכלי ידוע מהחדשות.']},
+  {en:'Dessert is my favourite course at supper.',
+   he:'קינוח היא המנה האהובה עלי בארוחת הערב.',
+   distractorsHe:['אני אוהב לאכול ארוחת ערב עם קינוח.','קינוח הוא קורס שאני לומד.','בארוחת ערב אני לא אוהב מנות.']},
+  {en:'The principal usually greets his students.',
+   he:'המנהל בדרך כלל מברך את תלמידיו.',
+   distractorsHe:['התלמידים מברכים את המנהל בדרך כלל.','המנהל לא פוגש את התלמידים בדרך כלל.','בדרך כלל התלמידים מדברים עם המנהל.']},
+  {en:'The police found the stolen car and returned it to the owner.',
+   he:'המשטרה מצאה את המכונית הגנובה והחזירה אותה לבעלים.',
+   distractorsHe:['הבעלים החזיר את המכונית למשטרה.','המשטרה גנבה את המכונית מהבעלים.','המכונית הגנובה לא נמצאה על ידי המשטרה.']},
+  {en:'He looks strange. It is very odd.',
+   he:'הוא נראה מוזר. זה מאוד מוזר.',
+   distractorsHe:['הוא לא מוזר, הוא רק שונה.','זה נראה מוזר כי הוא לא שם.','הוא נראה יפה ומוצלח.']},
+  {en:'My computer broke down — I should repair it.',
+   he:'המחשב שלי התקלקל — אני צריך לתקן אותו.',
+   distractorsHe:['אני צריך מחשב חדש כי הישן גנוב.','המחשב עובד טוב, אני לא צריך לתקן.','אני תיקנתי את המחשב לפני שהתקלקל.']},
+  {en:'I keep in touch with my friends through WhatsApp.',
+   he:'אני שומר על קשר עם החברים שלי דרך וואטסאפ.',
+   distractorsHe:['החברים שלי לא משתמשים בוואטסאפ.','אני מדבר עם חברים רק בבית הספר.','אני לא שומר על קשר עם חברים.']},
+  {en:'There was a lot of dust and sand in the garden.',
+   he:'היה הרבה אבק וחול בגינה.',
+   distractorsHe:['הגינה הייתה נקייה מאוד.','היה הרבה מים וחול בגינה.','הגינה הייתה מלאה בעלים ופרחים.']},
+  {en:'I like many fruits but I love apples in particular.',
+   he:'אני אוהב פירות רבים אבל אני אוהב תפוחים במיוחד.',
+   distractorsHe:['אני לא אוהב פירות, רק תפוחים.','תפוחים הם הפרי היחיד שאני אוהב.','אני אוהב תפוחים פחות מפירות אחרים.']},
+  {en:'Please finish your homework in advance before the lesson.',
+   he:'בבקשה סיים את שיעורי הבית מראש לפני השיעור.',
+   distractorsHe:['אל תסיים שיעורי בית לפני הזמן.','תעשה שיעורי בית רק אחרי השיעור.','המורה ביקש ממך לא לעשות שיעורי בית.']},
+  {en:'Good preparation helps you do well on a test.',
+   he:'הכנה טובה עוזרת לך להצליח במבחן.',
+   distractorsHe:['לא צריך הכנה כדי להצליח במבחן.','הכנה טובה לא חשובה במבחן.','אם תתכונן, בטח לא תצליח.']},
+  {en:'She used threads to fix the shirt.',
+   he:'היא השתמשה בחוטים כדי לתקן את החולצה.',
+   distractorsHe:['היא קנתה חולצה חדשה במקום לתקן.','הוא תיקן את החולצה עם מחטים.','היא לבשה את החולצה בלי לתקן אותה.']},
+  {en:'Don\'t forget to wipe your table after you eat.',
+   he:'אל תשכח לנגב את השולחן שלך אחרי שאכלת.',
+   distractorsHe:['תשכח לנגב את השולחן לפני שאתה אוכל.','אין צורך לנגב שולחן אחרי אכילה.','הוא ניגב את השולחן לפני שאכל.']},
+  {en:'The teacher will demonstrate how to solve the problem.',
+   he:'המורה ידגים כיצד לפתור את הבעיה.',
+   distractorsHe:['התלמידים ידגימו כיצד לפתור את הבעיה.','המורה לא יסביר כיצד לפתור.','הבעיה כבר נפתרה על ידי המורה.']},
+];
+
+// Hebrew sentences for HE→EN direction
+// (pulled from the same SENTENCES array, flipped)
+
+const MATCHING_POOL = [
+  {en:'approve',       he:'לאשר'},
+  {en:'postpone',      he:'לדחות'},
+  {en:'contribute',    he:'לתרום'},
+  {en:'demonstrate',   he:'להדגים'},
+  {en:'repair',        he:'לתקן'},
+  {en:'complain',      he:'להתלונן'},
+  {en:'convenient',    he:'נוח'},
+  {en:'economic',      he:'כלכלי'},
+  {en:'exhibition',    he:'תערוכה'},
+  {en:'community',     he:'קהילה'},
+  {en:'preparation',   he:'הכנה'},
+  {en:'odd',           he:'מוזר'},
+  {en:'in advance',    he:'מראש'},
+  {en:'keep in touch', he:'לשמור על קשר'},
+  {en:'turn down',     he:'לסרב'},
+  {en:'in particular', he:'במיוחד'},
+  {en:'thread',        he:'חוט'},
+  {en:'dust',          he:'אבק'},
+  {en:'wipe',          he:'לנגב'},
+  {en:'owner',         he:'בעלים'},
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+const G = {
+  score:0, streak:0,
+  mode:'flash',
+  queue:[], qi:0,
+  flipped:false,
+  sentDir:'enHe',   // 'enHe' | 'heEn'
+  matchPairs:[], matchSelSide:null, matchSelIdx:null, matchDone:0,
+  leftOrder:[], rightOrder:[]
+};
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+const shuffle = a => [...a].sort(()=>Math.random()-.5);
+const gc = () => document.getElementById('gc');
+function el(tag, cls, txt){
+  const e=document.createElement(tag); e.className=cls;
+  if(txt!==undefined) e.textContent=txt; return e;
+}
+function btn(txt, cls, fn){
+  const b=document.createElement('button'); b.className='btn '+cls;
+  b.textContent=txt; b.onclick=fn; return b;
+}
+
+function speak(text, lang='en-US', rate=0.85){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang; u.rate=rate; speechSynthesis.speak(u);
+}
+
+function addScore(n){
+  G.score+=n; G.streak++;
+  document.getElementById('s-score').textContent=G.score;
+  document.getElementById('s-streak').textContent=G.streak;
+  if(G.streak>=3) confetti();
+}
+function resetStreak(){
+  G.streak=0;
+  document.getElementById('s-streak').textContent=0;
+}
+
+function confetti(){
+  const w=document.getElementById('cw'); w.innerHTML='';
+  const cols=['#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#06b6d4','#f97316'];
+  for(let i=0;i<60;i++){
+    const p=document.createElement('div'); p.className='cp';
+    p.style.cssText=`left:${Math.random()*100}%;top:-12px;background:${cols[i%cols.length]};
+      transform:rotate(${Math.random()*360}deg);
+      animation-duration:${1.2+Math.random()*1.5}s;
+      animation-delay:${Math.random()*.7}s`;
+    w.appendChild(p);
+  }
+  setTimeout(()=>w.innerHTML='',3800);
+}
+
+function doneScreen(onRestart){
+  gc().innerHTML='';
+  const d=document.createElement('div'); d.className='done-scr';
+  d.appendChild(el('div','ico','🏆'));
+  d.appendChild(el('p','','כל הכבוד! סיימת את כל השאלות!'));
+  d.appendChild(btn('שחק שוב 🔄','btn-green',onRestart));
+  gc().appendChild(d); confetti();
+}
+
+function showFeedback(correct, clickedEl){
+  document.querySelectorAll('.opt').forEach(o=>o.classList.add('disabled'));
+  clickedEl.classList.add(correct?'correct':'wrong');
+  if(!correct){
+    document.querySelectorAll('.opt').forEach(o=>{
+      if(o.dataset.correct==='1') o.classList.add('correct');
+    });
+  }
+  const fb=document.getElementById('fb');
+  if(fb){ fb.textContent=correct?'✅ נכון!':'❌ לא נכון'; fb.className='fb show '+(correct?'ok':'no'); }
+  correct ? addScore(10) : resetStreak();
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════════════════
+function setMode(m){
+  G.mode=m;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+m).classList.add('active');
+  speechSynthesis && speechSynthesis.cancel();
+  ({flash:initFlash, vocab:initVocab, fillin:initFillIn, sent:initSent, match:initMatch})[m]();
+}
+
+// ═══════════════════════════════════════════════════════
+//  A. FLASHCARDS
+// ═══════════════════════════════════════════════════════
+function initFlash(){
+  G.queue=shuffle(VOCAB); G.qi=0; G.flipped=false; renderFlash();
+}
+function renderFlash(){
+  const v=G.queue[G.qi]; const box=gc(); box.innerHTML='';
+  box.appendChild(el('div','sec-title','📇 כרטיסיות — לחץ לראות עברית'));
+  box.appendChild(el('div','prog',`${G.qi+1} / ${G.queue.length}`));
+
+  const scene=document.createElement('div'); scene.className='flip-scene';
+  const card=document.createElement('div'); card.className='flip-card'+(G.flipped?' flipped':'');
+  card.onclick=()=>{G.flipped=!G.flipped; card.classList.toggle('flipped'); hint.textContent=G.flipped?'לחץ לחזרה':'לחץ לתרגום';};
+
+  const front=document.createElement('div'); front.className='flip-face flip-front';
+  const hint=el('div','flip-hint',G.flipped?'לחץ לחזרה':'לחץ לתרגום');
+  front.append(el('div','flip-en',v.en), el('div','flip-type',v.pos), hint);
+
+  const back=document.createElement('div'); back.className='flip-face flip-back';
+  back.appendChild(el('div','flip-he',v.he));
+
+  card.append(front,back); scene.appendChild(card);
+
+  const sndBtn=btn('🔊 שמע','btn-blue btn-sm',()=>speak(v.en));
+  sndBtn.style.display='block'; sndBtn.style.margin='0 auto 10px';
+
+  const navRow=document.createElement('div'); navRow.className='nav-row';
+  navRow.append(
+    btn('◀ קודם','btn-purple btn-sm',()=>{G.qi=(G.qi-1+G.queue.length)%G.queue.length; G.flipped=false; renderFlash();}),
+    btn('הבא ▶','btn-purple btn-sm',()=>{G.qi=(G.qi+1)%G.queue.length; if(G.qi===0)G.queue=shuffle(VOCAB); G.flipped=false; renderFlash();})
+  );
+  box.append(scene, sndBtn, navRow);
+}
+
+// ═══════════════════════════════════════════════════════
+//  B. VOCAB MULTIPLE CHOICE (harder — 4 close options)
+// ═══════════════════════════════════════════════════════
+function initVocab(){
+  G.queue=shuffle(VOCAB); G.qi=0; renderVocab();
+}
+function renderVocab(){
+  if(G.qi>=G.queue.length){doneScreen(initVocab);return;}
+  const v=G.queue[G.qi];
+  const wrong=shuffle(VOCAB.filter(x=>x.en!==v.en)).slice(0,3);
+  const opts=shuffle([v,...wrong]);
+
+  const box=gc(); box.innerHTML='';
+  box.append(el('div','sec-title','🔤 מה המשמעות בעברית?'), el('div','prog',`${G.qi+1} / ${G.queue.length}`));
+
+  const qRow=document.createElement('div'); qRow.style.cssText='text-align:center;margin:8px 0 18px';
+  qRow.append(el('span','word-big',v.en));
+  const snd=btn('🔊','btn-blue btn-sm',()=>speak(v.en)); snd.style.display='block'; snd.style.margin='0 auto';
+  qRow.appendChild(snd);
+  box.appendChild(qRow);
+
+  const optDiv=document.createElement('div'); optDiv.className='opts';
+  const fb=el('div','fb',''); fb.id='fb';
+
+  opts.forEach(o=>{
+    const b=document.createElement('div'); b.className='opt'; b.textContent=o.he;
+    b.onclick=()=>{showFeedback(o.en===v.en, b); if(o.en===v.en) speak(v.en); setTimeout(()=>{G.qi++; renderVocab();}, o.en===v.en?1200:1800);};
+    if(o.en===v.en) b.dataset.correct='1';
+    optDiv.appendChild(b);
+  });
+  box.append(optDiv,fb);
+}
+
+// ═══════════════════════════════════════════════════════
+//  C. FILL IN THE BLANK
+// ═══════════════════════════════════════════════════════
+function initFillIn(){
+  G.queue=shuffle(FILLIN); G.qi=0; renderFillIn();
+}
+function renderFillIn(){
+  if(G.qi>=G.queue.length){doneScreen(initFillIn);return;}
+  const q=G.queue[G.qi]; const opts=shuffle(q.opts);
+  const full=q.q.replace('___',q.ans);
+
+  const box=gc(); box.innerHTML='';
+  box.append(el('div','sec-title','✏️ השלם את המשפט'), el('div','prog',`${G.qi+1} / ${G.queue.length}`));
+
+  // Build question with highlighted blank
+  const qDiv=document.createElement('div'); qDiv.className='q-en';
+  const parts=q.q.split('___');
+  qDiv.appendChild(document.createTextNode(parts[0]));
+  const blk=el('span','','______'); blk.style.cssText='border-bottom:2px solid #3b82f6;color:#7dd3fc;font-weight:800;padding:0 4px';
+  qDiv.appendChild(blk);
+  if(parts[1]) qDiv.appendChild(document.createTextNode(parts[1]));
+  box.appendChild(qDiv);
+
+  const snd=btn('🔊 שמע משפט','btn-blue btn-sm',()=>speak(full)); snd.style.display='block'; snd.style.margin='0 auto 12px';
+  box.appendChild(snd);
+
+  const optDiv=document.createElement('div'); optDiv.className='opts';
+  const fb=el('div','fb',''); fb.id='fb';
+
+  opts.forEach(o=>{
+    const b=document.createElement('div'); b.className='opt'; b.textContent=o;
+    b.onclick=()=>{
+      showFeedback(o===q.ans, b);
+      if(o===q.ans) speak(full);
+      setTimeout(()=>{G.qi++; renderFillIn();}, o===q.ans?1300:1900);
+    };
+    if(o===q.ans) b.dataset.correct='1';
+    optDiv.appendChild(b);
+  });
+  box.append(optDiv,fb);
+}
+
+// ═══════════════════════════════════════════════════════
+//  D. SENTENCE TRANSLATION (EN↔HE)
+// ═══════════════════════════════════════════════════════
+function initSent(){
+  G.queue=shuffle(SENTENCES); G.qi=0; renderSent();
+}
+
+function renderSent(){
+  if(G.qi>=G.queue.length){doneScreen(initSent);return;}
+
+  const box=gc(); box.innerHTML='';
+  box.appendChild(el('div','sec-title','🌍 תרגום משפטים'));
+  box.appendChild(el('div','prog',`${G.qi+1} / ${G.queue.length}`));
+
+  // direction toggle
+  const tog=document.createElement('div'); tog.className='dir-toggle';
+  const bEH=document.createElement('button'); bEH.className='dir-btn'+(G.sentDir==='enHe'?' active':''); bEH.textContent='🇬🇧 → 🇮🇱 אנגלית לעברית';
+  const bHE=document.createElement('button'); bHE.className='dir-btn'+(G.sentDir==='heEn'?' active':''); bHE.textContent='🇮🇱 → 🇬🇧 עברית לאנגלית';
+  bEH.onclick=()=>{G.sentDir='enHe'; G.queue=shuffle(SENTENCES); G.qi=0; renderSent();};
+  bHE.onclick=()=>{G.sentDir='heEn'; G.queue=shuffle(SENTENCES); G.qi=0; renderSent();};
+  tog.append(bEH,bHE); box.appendChild(tog);
+
+  const s=G.queue[G.qi];
+  const optDiv=document.createElement('div'); optDiv.className='opts';
+  const fb=el('div','fb',''); fb.id='fb';
+
+  if(G.sentDir==='enHe'){
+    // Show English → pick Hebrew
+    const qDiv=el('div','q-en',s.en);
+    const snd=btn('🔊','btn-blue btn-sm',()=>speak(s.en));
+    snd.style.display='block'; snd.style.margin='4px auto 14px';
+    box.append(qDiv,snd);
+
+    const allOpts=shuffle([s.he,...s.distractorsHe]);
+    allOpts.forEach(o=>{
+      const b=document.createElement('div'); b.className='opt'; b.textContent=o;
+      b.onclick=()=>{showFeedback(o===s.he,b); if(o===s.he) speak(s.en); setTimeout(()=>{G.qi++;renderSent();},o===s.he?1400:2000);};
+      if(o===s.he) b.dataset.correct='1';
+      optDiv.appendChild(b);
+    });
+
+  } else {
+    // Show Hebrew → pick English
+    const qDiv=el('div','q-he',s.he);
+    box.appendChild(qDiv);
+
+    // Build 3 wrong English options from other sentences
+    const wrongEn=shuffle(SENTENCES.filter(x=>x.en!==s.en)).slice(0,3).map(x=>x.en);
+    const allOpts=shuffle([s.en,...wrongEn]);
+    allOpts.forEach(o=>{
+      const b=document.createElement('div'); b.className='opt'; b.textContent=o;
+      b.onclick=()=>{showFeedback(o===s.en,b); if(o===s.en) speak(s.en); setTimeout(()=>{G.qi++;renderSent();},o===s.en?1400:2000);};
+      if(o===s.en) b.dataset.correct='1';
+      optDiv.appendChild(b);
+    });
+  }
+
+  box.append(optDiv,fb);
+}
+
+// ═══════════════════════════════════════════════════════
+//  E. MATCHING
+// ═══════════════════════════════════════════════════════
+function initMatch(){
+  const pairs=shuffle(MATCHING_POOL).slice(0,9);
+  G.matchPairs=pairs.map((p,i)=>({en:p.en, he:p.he, matched:false}));
+  G.leftOrder=shuffle(G.matchPairs.map((_,i)=>i));
+  G.rightOrder=shuffle(G.matchPairs.map((_,i)=>i));
+  G.matchSelSide=null; G.matchSelIdx=null; G.matchDone=0;
+  renderMatch();
+}
+
+function renderMatch(){
+  const box=gc(); box.innerHTML='';
+  box.append(el('div','sec-title','🔗 התאם אנגלית לעברית'), el('div','prog',`הותאמו: ${G.matchDone} / ${G.matchPairs.length}`));
+
+  const cols=document.createElement('div'); cols.className='match-cols';
+  const cL=document.createElement('div'); cL.className='match-col';
+  const cR=document.createElement('div'); cR.className='match-col';
+  cL.appendChild(el('div','match-col-title','English'));
+  cR.appendChild(el('div','match-col-title','עברית'));
+
+  G.leftOrder.forEach(idx=>{
+    const p=G.matchPairs[idx];
+    const item=document.createElement('div');
+    item.className='mi'+(p.matched?' matched':'')+(G.matchSelSide==='L'&&G.matchSelIdx===idx?' sel':'');
+    item.textContent=p.en;
+    if(!p.matched) item.onclick=()=>mClick('L',idx);
+    cL.appendChild(item);
+  });
+  G.rightOrder.forEach(idx=>{
+    const p=G.matchPairs[idx];
+    const item=document.createElement('div');
+    item.className='mi'+(p.matched?' matched':'')+(G.matchSelSide==='R'&&G.matchSelIdx===idx?' sel':'');
+    item.textContent=p.he;
+    if(!p.matched) item.onclick=()=>mClick('R',idx);
+    cR.appendChild(item);
+  });
+
+  cols.append(cL,cR); box.appendChild(cols);
+}
+
+function mClick(side,idx){
+  if(G.matchSelSide===null){ G.matchSelSide=side; G.matchSelIdx=idx; renderMatch(); return; }
+  if(G.matchSelSide===side){ G.matchSelSide=side; G.matchSelIdx=idx; renderMatch(); return; }
+
+  const lIdx=side==='L'?idx:G.matchSelIdx;
+  const rIdx=side==='R'?idx:G.matchSelIdx;
+  G.matchSelSide=null; G.matchSelIdx=null;
+
+  if(lIdx===rIdx){
+    G.matchPairs[lIdx].matched=true; G.matchDone++;
+    addScore(15); renderMatch();
+    if(G.matchDone===G.matchPairs.length) setTimeout(()=>doneScreen(initMatch),600);
+  } else {
+    renderMatch();
+    const lPair=G.matchPairs[lIdx]; const rPair=G.matchPairs[rIdx];
+    document.querySelectorAll('.mi').forEach(it=>{
+      const txt=it.textContent.trim();
+      if(txt===lPair.en||txt===rPair.he){ it.classList.add('bad'); setTimeout(()=>it.classList.remove('bad'),500); }
+    });
+    resetStreak();
+  }
+}
+
+// ── START ──
+setMode('flash');
+</script>
+</body>
+</html>
